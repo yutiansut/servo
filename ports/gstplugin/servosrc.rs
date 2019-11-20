@@ -131,14 +131,16 @@ impl ServoSrcGfx {
             .expect("Failed to get context info")
             .framebuffer_object;
         gl.bind_framebuffer(gl::FRAMEBUFFER, fbo);
-        debug_assert_eq!(gl.get_error(), gl::NO_ERROR);
         debug_assert_eq!(
-            gl.check_framebuffer_status(gl::FRAMEBUFFER),
-            gl::FRAMEBUFFER_COMPLETE
+            (gl.check_framebuffer_status(gl::FRAMEBUFFER), gl.get_error()),
+            (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
         );
 
         let fbo = gl.gen_framebuffers(1)[0];
-        debug_assert_eq!(gl.get_error(), gl::NO_ERROR);
+        debug_assert_eq!(
+            (gl.check_framebuffer_status(gl::FRAMEBUFFER), gl.get_error()),
+            (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
+        );
 
         device.make_no_context_current().unwrap();
 
@@ -229,10 +231,12 @@ impl ServoThread {
                 .expect("Failed to get context info")
                 .framebuffer_object;
             gfx.gl.bind_framebuffer(gl::FRAMEBUFFER, fbo);
-            debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
             debug_assert_eq!(
-                gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
-                gl::FRAMEBUFFER_COMPLETE
+                (
+                    gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                    gfx.gl.get_error()
+                ),
+                (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
             );
         });
         self.servo.handle_events(vec![WindowEvent::Resize]);
@@ -278,10 +282,15 @@ impl ServoSrcWindow {
             let mut gfx = gfx.borrow_mut();
             let gfx = &mut *gfx;
             let access = SurfaceAccess::GPUCPU;
-            debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
+            gfx.device
+                .make_context_current(&mut gfx.context)
+                .expect("Failed to make context current");
             debug_assert_eq!(
-                gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
-                gl::FRAMEBUFFER_COMPLETE
+                (
+                    gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                    gfx.gl.get_error()
+                ),
+                (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
             );
             let swap_chain = SwapChain::create_attached(&mut gfx.device, &mut gfx.context, access)
                 .expect("Failed to create swap chain");
@@ -292,10 +301,12 @@ impl ServoSrcWindow {
                 .expect("Failed to get context info")
                 .framebuffer_object;
             gfx.gl.bind_framebuffer(gl::FRAMEBUFFER, fbo);
-            debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
             debug_assert_eq!(
-                gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
-                gl::FRAMEBUFFER_COMPLETE
+                (
+                    gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                    gfx.gl.get_error()
+                ),
+                (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
             );
             let gl = unsafe {
                 gleam::gl::GlFns::load_with(|s| gfx.device.get_proc_address(&gfx.context, s))
@@ -311,10 +322,15 @@ impl WindowMethods for ServoSrcWindow {
             debug!("EMBEDDER present");
             let mut gfx = gfx.borrow_mut();
             let gfx = &mut *gfx;
-            debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
+            gfx.device
+                .make_context_current(&mut gfx.context)
+                .expect("Failed to make context current");
             debug_assert_eq!(
-                gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
-                gl::FRAMEBUFFER_COMPLETE
+                (
+                    gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                    gfx.gl.get_error()
+                ),
+                (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
             );
             let _ = self
                 .swap_chain
@@ -326,10 +342,12 @@ impl WindowMethods for ServoSrcWindow {
                 .expect("Failed to get context info")
                 .framebuffer_object;
             gfx.gl.bind_framebuffer(gl::FRAMEBUFFER, fbo);
-            debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
             debug_assert_eq!(
-                gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
-                gl::FRAMEBUFFER_COMPLETE
+                (
+                    gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                    gfx.gl.get_error()
+                ),
+                (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
             );
             let _ = gfx.device.make_no_context_current();
         })
@@ -340,11 +358,15 @@ impl WindowMethods for ServoSrcWindow {
             debug!("EMBEDDER make_context_current");
             let mut gfx = gfx.borrow_mut();
             let gfx = &mut *gfx;
-            let _ = gfx.device.make_context_current(&gfx.context);
-            debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
+            gfx.device
+                .make_context_current(&mut gfx.context)
+                .expect("Failed to make context current");
             debug_assert_eq!(
-                gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
-                gl::FRAMEBUFFER_COMPLETE
+                (
+                    gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                    gfx.gl.get_error()
+                ),
+                (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
             );
         })
     }
@@ -366,7 +388,6 @@ impl WindowMethods for ServoSrcWindow {
                 .size;
             let size = Size2D::from_untyped(size);
             let origin = Point2D::origin();
-            debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
             EmbedderCoordinates {
                 hidpi_factor: Scale::new(1.0),
                 screen: size,
@@ -521,10 +542,22 @@ impl BaseSrcImpl for ServoSrc {
             let gfx = &mut *gfx;
             if let Some(surface) = self.swap_chain.take_surface() {
                 gfx.device.make_context_current(&gfx.context).unwrap();
-                debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
+                debug_assert_eq!(
+                    (
+                        gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                        gfx.gl.get_error()
+                    ),
+                    (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
+                );
 
                 gfx.gl.viewport(0, 0, width, height);
-                debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
+                debug_assert_eq!(
+                    (
+                        gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                        gfx.gl.get_error()
+                    ),
+                    (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
+                );
 
                 let surface_texture = gfx
                     .device
@@ -533,8 +566,6 @@ impl BaseSrcImpl for ServoSrc {
                 let texture_id = surface_texture.gl_texture();
 
                 gfx.gl.bind_framebuffer(gl::FRAMEBUFFER, gfx.fbo);
-                debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
-
                 gfx.gl.framebuffer_texture_2d(
                     gl::FRAMEBUFFER,
                     gl::COLOR_ATTACHMENT0,
@@ -542,7 +573,13 @@ impl BaseSrcImpl for ServoSrc {
                     texture_id,
                     0,
                 );
-                debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
+                debug_assert_eq!(
+                    (
+                        gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                        gfx.gl.get_error()
+                    ),
+                    (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
+                );
 
                 // TODO: use GL memory to avoid readback
                 gfx.gl.read_pixels_into_buffer(
@@ -554,8 +591,13 @@ impl BaseSrcImpl for ServoSrc {
                     gl::UNSIGNED_BYTE,
                     data,
                 );
-                debug_assert_eq!(gfx.gl.get_error(), gl::NO_ERROR);
-                debug!("Read pixels {:?}", &data[..127]);
+                debug_assert_eq!(
+                    (
+                        gfx.gl.check_framebuffer_status(gl::FRAMEBUFFER),
+                        gfx.gl.get_error()
+                    ),
+                    (gl::FRAMEBUFFER_COMPLETE, gl::NO_ERROR)
+                );
 
                 gfx.device.make_no_context_current().unwrap();
 
