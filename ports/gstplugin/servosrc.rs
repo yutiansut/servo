@@ -454,6 +454,7 @@ impl ObjectImpl for ServoSrc {
         let basesrc = obj.downcast_ref::<BaseSrc>().unwrap();
         basesrc.set_live(true);
         basesrc.set_format(Format::Time);
+        basesrc.set_do_timestamp(true);
     }
 }
 
