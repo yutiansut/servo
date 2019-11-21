@@ -73,6 +73,7 @@ use surfman_chains::SwapChain;
 use surfman_chains_api::SwapChainAPI;
 
 use std::cell::RefCell;
+use std::convert::TryFrom;
 use std::rc::Rc;
 use std::sync::Mutex;
 use std::thread;
@@ -493,6 +494,10 @@ impl BaseSrcImpl for ServoSrc {
             .map_err(|_| gst_loggable_error!(CATEGORY, "Failed to send video info"))?;
         *self.info.lock().unwrap() = Some(info);
         Ok(())
+    }
+
+    fn get_size(&self, _src: &BaseSrc) -> Option<u64> {
+        u64::try_from(self.info.lock().ok()?.as_ref()?.size()).ok()
     }
 
     fn start(&self, _src: &BaseSrc) -> Result<(), ErrorMessage> {
