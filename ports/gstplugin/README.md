@@ -20,12 +20,40 @@ cp target/release/libgstservoplugin.* target/gstplugins
 ```
 ## Run
 
+To run locally:
 ```
 GST_PLUGIN_PATH=target/gstplugins \
   gst-launch-1.0 servosrc \
     ! queue \
+    ! video/x-raw,framerate=25/1,width=512,height=512 \
     ! videoflip video-direction=vert \
     ! autovideosink
+```
+
+To stream over the network:
+```
+GST_PLUGIN_PATH=target/gstplugins \
+  gst-launch-1.0 servosrc \
+    ! queue \
+    ! video/x-raw,framerate=25/1,width=512,height=512 \
+    ! videoconvert \
+    ! videoflip video-direction=vert \
+    ! theoraenc \
+    ! oggmux \
+    ! tcpserversink host=127.0.0.1 port=8080
+```
+
+To  save to a file:
+```
+GST_PLUGIN_PATH=target/gstplugins \
+  gst-launch-1.0 servosrc num-buffers=2000 \
+    ! queue \
+    ! video/x-raw,framerate=25/1,width=512,height=512 \
+    ! videoconvert \
+    ! videoflip video-direction=vert \
+    ! theoraenc \
+    ! oggmux \
+    ! filesink location=test.ogg
 ```
 
 *Note*: killing the gstreamer pipeline with control-C sometimes locks up macOS to the point
