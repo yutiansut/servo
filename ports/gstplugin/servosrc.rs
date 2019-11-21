@@ -487,7 +487,7 @@ impl BaseSrcImpl for ServoSrc {
     fn set_caps(&self, _src: &BaseSrc, outcaps: &Caps) -> Result<(), LoggableError> {
         let info = VideoInfo::from_caps(outcaps)
             .ok_or_else(|| gst_loggable_error!(CATEGORY, "Failed to get video info"))?;
-        let size = Size2D::new(info.height(), info.width()).to_i32();
+        let size = Size2D::new(info.width(), info.height()).to_i32();
         debug!("Setting servosrc buffer size to {}", size,);
         self.sender
             .send(ServoSrcMsg::Resize(size))
