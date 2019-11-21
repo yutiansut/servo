@@ -173,7 +173,7 @@ def linux_tidy_unit_untrusted():
         .with_script("""
             ./mach test-tidy --no-progress --all
             ./mach test-tidy --no-progress --self-test
-            ./mach build --dev
+            ./mach build --dev -vv
             ./mach test-unit
 
             ./etc/ci/lockfile_changed.sh
