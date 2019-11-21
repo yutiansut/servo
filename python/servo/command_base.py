@@ -677,8 +677,7 @@ install them, let us know by filing a bug!")
             # we append in the reverse order so that system gstreamer libraries
             # do not get precedence
             extra_path = [libpath] + extra_path
-            extra_lib = [libpath] + extra_path
-            append_to_path_env(libpath, env, "LD_LIBRARY_PATH")
+            extra_lib = [libpath] + extra_lib
             append_to_path_env(path.join(libpath, "pkgconfig"), env, "PKG_CONFIG_PATH")
 
         if sys.platform == "linux2":
