@@ -30,7 +30,7 @@ servo-media = {git = "https://github.com/servo/media"}
 sparkle = "0.1"
 surfman = { version = "0.1", features = ["sm-osmesa"] }
 surfman-chains-api = "0.2"
-surfman-chains = "0.2"
+surfman-chains = "0.2.1"
 
 [build-dependencies]
 gst-plugin-version-helper = "0.1"

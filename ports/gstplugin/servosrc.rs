@@ -378,27 +378,17 @@ impl WindowMethods for ServoSrcWindow {
     }
 
     fn get_coordinates(&self) -> EmbedderCoordinates {
-        GFX.with(|gfx| {
-            debug!("EMBEDDER get_coordinates");
-            let mut gfx = gfx.borrow_mut();
-            let gfx = &mut *gfx;
-            let size = gfx
-                .device
-                .context_surface_info(&gfx.context)
-                .unwrap()
-                .unwrap()
-                .size;
-            let size = Size2D::from_untyped(size);
-            let origin = Point2D::origin();
-            EmbedderCoordinates {
-                hidpi_factor: Scale::new(1.0),
-                screen: size,
-                screen_avail: size,
-                window: (size, origin),
-                framebuffer: size,
-                viewport: Rect::new(origin, size),
-            }
-        })
+        let size = Size2D::from_untyped(self.swap_chain.size());
+        info!("EMBEDDER coordinates {}", size);
+        let origin = Point2D::origin();
+        EmbedderCoordinates {
+            hidpi_factor: Scale::new(1.0),
+            screen: size,
+            screen_avail: size,
+            window: (size, origin),
+            framebuffer: size,
+            viewport: Rect::new(origin, size),
+        }
     }
 
     fn set_animation_state(&self, _: AnimationState) {}
