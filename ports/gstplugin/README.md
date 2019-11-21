@@ -31,7 +31,16 @@ GST_PLUGIN_PATH=target/gstplugins \
 *Note*: killing the gstreamer pipeline with control-C sometimes locks up macOS to the point
 of needing a power cycle. Killing the pipeline by closing the window seems to work.
 
-## Troubleshooting
+## Troubleshooting building the plugin
+
+You may need to make sure rust picks up the right gstreamer, for example:
+```
+PKG_CONFIG_PATH=$PWD/support/linux/gstreamer/gst/lib \
+LD_LIBRARY_PATH=$PWD/support/linux/gstreamer/gst/lib \
+  ./mach build -r -p servo-gst-plugin
+```
+
+## Troubleshooting running the plugin
 
 *Currently x11 support is broken!*
 
