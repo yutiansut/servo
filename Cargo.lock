@@ -4534,6 +4534,7 @@ dependencies = [
  "sparkle",
  "surfman",
  "surfman-chains",
+ "surfman-chains-api",
 ]
 
 [[package]]

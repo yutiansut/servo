@@ -70,6 +70,7 @@ use surfman::SurfaceAccess;
 use surfman::SurfaceType;
 
 use surfman_chains::SwapChain;
+use surfman_chains_api::SwapChainAPI;
 
 use std::cell::RefCell;
 use std::rc::Rc;
