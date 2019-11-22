@@ -585,10 +585,10 @@ class CommandBase(object):
                 return True
             else:
                 raise Exception("Your system's gstreamer libraries are out of date \
-(we need at least 1.12). Please run ./mach bootstrap-gstreamer")
+(we need at least 1.16). Please run ./mach bootstrap-gstreamer")
         else:
                 raise Exception("Your system's gstreamer libraries are out of date \
-(we need at least 1.12). If you're unable to \
+(we need at least 1.16). If you're unable to \
 install them, let us know by filing a bug!")
         return False
 
