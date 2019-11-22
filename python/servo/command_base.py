@@ -566,11 +566,14 @@ class CommandBase(object):
         if uwp:
             return False
         try:
+            print("Checking for gstreamer_lib")
             if check_gstreamer_lib():
+                print("Found gstreamer_lib")
                 return False
         except:
             # Some systems don't have pkg-config; we can't probe in this case
             # and must hope for the best
+            print("Exception while looking for gstreamer_lib")
             return False
         effective_target = target or host_triple()
         if "x86_64" not in effective_target or "android" in effective_target:
@@ -578,6 +581,7 @@ class CommandBase(object):
             return False
         if sys.platform == "linux2" or is_windows():
             if path.isdir(gstreamer_root(effective_target, env, self.get_top_dir())):
+                print("Using gstreamer in {}".format(gstreamer_root(effective_target, env, self.get_top_dir())))
                 return True
             else:
                 raise Exception("Your system's gstreamer libraries are out of date \
