@@ -566,11 +566,14 @@ class CommandBase(object):
         if uwp:
             return False
         try:
+            print("Checking for gstreamer_lib")
             if check_gstreamer_lib():
+                print("Found gstreamer_lib")
                 return False
         except:
             # Some systems don't have pkg-config; we can't probe in this case
             # and must hope for the best
+            print("Exception while looking for gstreamer_lib")
             return False
         effective_target = target or host_triple()
         if "x86_64" not in effective_target or "android" in effective_target:
@@ -578,13 +581,14 @@ class CommandBase(object):
             return False
         if sys.platform == "linux2" or is_windows():
             if path.isdir(gstreamer_root(effective_target, env, self.get_top_dir())):
+                print("Using gstreamer in {}".format(gstreamer_root(effective_target, env, self.get_top_dir())))
                 return True
             else:
                 raise Exception("Your system's gstreamer libraries are out of date \
-(we need at least 1.12). Please run ./mach bootstrap-gstreamer")
+(we need at least 1.16). Please run ./mach bootstrap-gstreamer")
         else:
                 raise Exception("Your system's gstreamer libraries are out of date \
-(we need at least 1.12). If you're unable to \
+(we need at least 1.16). If you're unable to \
 install them, let us know by filing a bug!")
         return False
 
@@ -677,7 +681,7 @@ install them, let us know by filing a bug!")
             # we append in the reverse order so that system gstreamer libraries
             # do not get precedence
             extra_path = [libpath] + extra_path
-            extra_lib = [libpath] + extra_path
+            extra_lib = [libpath] + extra_lib
             append_to_path_env(path.join(libpath, "pkgconfig"), env, "PKG_CONFIG_PATH")
 
         if sys.platform == "linux2":
