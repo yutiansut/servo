@@ -133,11 +133,12 @@ impl Serializable for Blob {
         owner: &DomRoot<GlobalScope>,
         sc_holder: &mut StructuredDataHolder,
         storage_key: StorageKey,
-    ) -> Result<usize, ()> {
+    ) -> Result<(), ()> {
         // 1. Re-build the key for the storage location
         // of the serialized object.
-        let namespace_id = PipelineNamespaceId(storage_key.name_space);
-        let index = BlobIndex(NonZeroU32::new(storage_key.index).expect("Index to be non-zero"));
+        let namespace_id = PipelineNamespaceId(storage_key.name_space.clone());
+        let index =
+            BlobIndex(NonZeroU32::new(storage_key.index.clone()).expect("Index to be non-zero"));
 
         let id = BlobId {
             namespace_id,
@@ -151,32 +152,28 @@ impl Serializable for Blob {
             _ => panic!("Unexpected variant of StructuredDataHolder"),
         };
 
-        // 2. Get the transferred object from it's storage, using the key.
-        let (blobs_len, blob_impl) = if let Some(blobs) = blob_impls.as_mut() {
-            let blobs_len = blobs.len();
-            let blob_impl = blobs.remove(&id).expect("Transferred port to be stored");
-            if blobs.is_empty() {
-                *blob_impls = None;
-            }
-            (blobs_len, blob_impl)
-        } else {
-            panic!("A blob was deserialized, yet the SC holder does not have any blob impls");
-        };
+        // 2. Get the transferred object from its storage, using the key.
+        let blob_impls_map = blob_impls
+            .as_mut()
+            .expect("The SC holder does not have any blob impls");
+        let blob_impl = blob_impls_map
+            .remove(&id)
+            .expect("Transferred port to be stored");
+        if blob_impls_map.is_empty() {
+            *blob_impls = None;
+        }
 
         let deserialized_blob = Blob::new(&**owner, blob_impl);
 
-        let current_len = if let Some(blobs) = blobs.as_mut() {
-            blobs.push(deserialized_blob);
-            blobs.len()
+        if let Some(blobs) = blobs.as_mut() {
+            blobs.insert(storage_key, deserialized_blob);
         } else {
-            let mut blobs_vec = Vec::with_capacity(blobs_len);
-            let current_len = blobs_vec.len();
-            blobs_vec.push(deserialized_blob);
-            *blobs = Some(blobs_vec);
-            current_len
+            let mut blobs_map = HashMap::new();
+            blobs_map.insert(storage_key, deserialized_blob);
+            *blobs = Some(blobs_map);
         };
 
-        Ok(current_len - 1)
+        Ok(())
     }
 }
 

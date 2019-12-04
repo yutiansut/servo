@@ -67,20 +67,15 @@ unsafe fn read_blob(
         &mut name_space as *mut u32,
         &mut index as *mut u32
     ));
-    let storage_key = StorageKey {
-        index,
-        name_space,
-    };
-    if let Ok(index) =
-        <Blob as Serializable>::deserialize(&owner, &mut sc_holder, storage_key)
-    {
+    let storage_key = StorageKey { index, name_space };
+    if <Blob as Serializable>::deserialize(&owner, &mut sc_holder, storage_key.clone()).is_ok() {
         let blobs = match sc_holder {
             StructuredDataHolder::Read { blobs, .. } => blobs,
             _ => panic!("Unexpected variant of StructuredDataHolder"),
         };
         if let Some(blobs) = blobs {
             let blob = blobs
-                .get(index)
+                .get(&storage_key)
                 .expect("A deserialized blob to have been stored");
             return blob.reflector().get_jsobject().get();
         }
@@ -104,7 +99,11 @@ unsafe fn write_blob(
             StructuredCloneTags::DomBlob as u32,
             0
         ));
-        assert!(JS_WriteUint32Pair(w, storage_key.name_space, storage_key.index));
+        assert!(JS_WriteUint32Pair(
+            w,
+            storage_key.name_space,
+            storage_key.index
+        ));
         return true;
     }
     warn!(
@@ -238,8 +237,8 @@ static STRUCTURED_CLONE_CALLBACKS: JSStructuredCloneCallbacks = JSStructuredClon
 /// https://html.spec.whatwg.org/multipage/#safe-passing-of-structured-data
 pub enum StructuredDataHolder {
     Read {
-        /// A deserialized blob, stored temporarily here to keep it rooted.
-        blobs: Option<Vec<DomRoot<Blob>>>,
+        /// A map of deserialized blobs, stored temporarily here to keep them rooted.
+        blobs: Option<HashMap<StorageKey, DomRoot<Blob>>>,
         /// A vec of transfer-received DOM ports,
         /// to be made available to script through a message event.
         message_ports: Option<Vec<DomRoot<MessagePort>>>,

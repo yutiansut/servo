@@ -11,7 +11,8 @@ use crate::dom::bindings::structuredclone::StructuredDataHolder;
 use crate::dom::globalscope::GlobalScope;
 
 /// The key corresponding to the storage location
-/// of the BlobImpl inside a StructuredDataHolder.
+/// of a serialized platform object stored in a StructuredDataHolder.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct StorageKey {
     pub index: u32,
     pub name_space: u32,
@@ -27,5 +28,5 @@ pub trait Serializable: DomObject {
         owner: &DomRoot<GlobalScope>,
         sc_holder: &mut StructuredDataHolder,
         extra_data: StorageKey,
-    ) -> Result<usize, ()>;
+    ) -> Result<(), ()>;
 }
