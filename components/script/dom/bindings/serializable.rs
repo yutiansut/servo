@@ -4,18 +4,28 @@
 
 //! Trait representing the concept of [serializable objects]
 //! (https://html.spec.whatwg.org/multipage/#serializable-objects).
+
 use crate::dom::bindings::reflector::DomObject;
 use crate::dom::bindings::root::DomRoot;
 use crate::dom::bindings::structuredclone::StructuredDataHolder;
 use crate::dom::globalscope::GlobalScope;
 
+/// The key corresponding to the storage location
+/// of the BlobImpl inside a StructuredDataHolder.
+pub struct StorageKey {
+    pub index: u32,
+    pub name_space: u32,
+}
+
+/// Interface for serializable platform objects.
+/// <https://html.spec.whatwg.org/multipage/#serializable>
 pub trait Serializable: DomObject {
     /// <https://html.spec.whatwg.org/multipage/#serialization-steps>
-    fn serialize(&self, sc_holder: &mut StructuredDataHolder) -> Result<(u32, u32), ()>;
+    fn serialize(&self, sc_holder: &mut StructuredDataHolder) -> Result<StorageKey, ()>;
     /// <https://html.spec.whatwg.org/multipage/#deserialization-steps>
     fn deserialize(
         owner: &DomRoot<GlobalScope>,
         sc_holder: &mut StructuredDataHolder,
-        extra_data: (u32, u32),
+        extra_data: StorageKey,
     ) -> Result<usize, ()>;
 }

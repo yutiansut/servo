@@ -8,7 +8,7 @@ use crate::dom::bindings::codegen::UnionTypes::ArrayBufferOrArrayBufferViewOrBlo
 use crate::dom::bindings::error::{Error, Fallible};
 use crate::dom::bindings::reflector::{reflect_dom_object, DomObject, Reflector};
 use crate::dom::bindings::root::DomRoot;
-use crate::dom::bindings::serializable::Serializable;
+use crate::dom::bindings::serializable::{Serializable, StorageKey};
 use crate::dom::bindings::str::DOMString;
 use crate::dom::bindings::structuredclone::StructuredDataHolder;
 use crate::dom::globalscope::GlobalScope;
@@ -89,7 +89,7 @@ impl Blob {
 
 impl Serializable for Blob {
     /// <https://html.spec.whatwg.org/multipage/#serialization-steps>
-    fn serialize(&self, sc_holder: &mut StructuredDataHolder) -> Result<(u32, u32), ()> {
+    fn serialize(&self, sc_holder: &mut StructuredDataHolder) -> Result<StorageKey, ()> {
         let blob_impls = match sc_holder {
             StructuredDataHolder::Write { blobs, .. } => blobs,
             _ => panic!("Unexpected variant of StructuredDataHolder"),
@@ -119,20 +119,25 @@ impl Serializable for Blob {
         let name_space = name_space.to_ne_bytes();
         let index = index.to_ne_bytes();
 
-        // 3. Return a u32 pair representation of the key where the object is stored.
-        Ok((u32::from_ne_bytes(name_space), u32::from_ne_bytes(index)))
+        let storage_key = StorageKey {
+            index: u32::from_ne_bytes(index),
+            name_space: u32::from_ne_bytes(name_space),
+        };
+
+        // 3. Return the storage key.
+        Ok(storage_key)
     }
 
     /// <https://html.spec.whatwg.org/multipage/#deserialization-steps>
     fn deserialize(
         owner: &DomRoot<GlobalScope>,
         sc_holder: &mut StructuredDataHolder,
-        extra_data: (u32, u32),
+        storage_key: StorageKey,
     ) -> Result<usize, ()> {
         // 1. Re-build the key for the storage location
         // of the serialized object.
-        let namespace_id = PipelineNamespaceId(extra_data.0);
-        let index = BlobIndex(NonZeroU32::new(extra_data.1).expect("Index to be non-zero"));
+        let namespace_id = PipelineNamespaceId(storage_key.name_space);
+        let index = BlobIndex(NonZeroU32::new(storage_key.index).expect("Index to be non-zero"));
 
         let id = BlobId {
             namespace_id,

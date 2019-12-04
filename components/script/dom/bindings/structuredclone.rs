@@ -10,7 +10,7 @@ use crate::dom::bindings::conversions::{root_from_object, ToJSValConvertible};
 use crate::dom::bindings::error::{Error, Fallible};
 use crate::dom::bindings::reflector::DomObject;
 use crate::dom::bindings::root::DomRoot;
-use crate::dom::bindings::serializable::Serializable;
+use crate::dom::bindings::serializable::{Serializable, StorageKey};
 use crate::dom::bindings::transferable::Transferable;
 use crate::dom::blob::Blob;
 use crate::dom::globalscope::GlobalScope;
@@ -67,8 +67,12 @@ unsafe fn read_blob(
         &mut name_space as *mut u32,
         &mut index as *mut u32
     ));
+    let storage_key = StorageKey {
+        index,
+        name_space,
+    };
     if let Ok(index) =
-        <Blob as Serializable>::deserialize(&owner, &mut sc_holder, (name_space, index))
+        <Blob as Serializable>::deserialize(&owner, &mut sc_holder, storage_key)
     {
         let blobs = match sc_holder {
             StructuredDataHolder::Read { blobs, .. } => blobs,
@@ -94,13 +98,13 @@ unsafe fn write_blob(
     w: *mut JSStructuredCloneWriter,
     sc_holder: &mut StructuredDataHolder,
 ) -> bool {
-    if let Ok(data) = blob.serialize(sc_holder) {
+    if let Ok(storage_key) = blob.serialize(sc_holder) {
         assert!(JS_WriteUint32Pair(
             w,
             StructuredCloneTags::DomBlob as u32,
             0
         ));
-        assert!(JS_WriteUint32Pair(w, data.0, data.1));
+        assert!(JS_WriteUint32Pair(w, storage_key.name_space, storage_key.index));
         return true;
     }
     warn!(
@@ -243,6 +247,9 @@ pub enum StructuredDataHolder {
         /// used as part of the "transfer-receiving" steps of ports,
         /// to produce the DOM ports stored in `message_ports` above.
         port_impls: Option<HashMap<MessagePortId, MessagePortImpl>>,
+        /// A map of blob implementations,
+        /// used as part of the "deserialize" steps of blobs,
+        /// to produce the DOM blobs stored in `blobs` above.
         blob_impls: Option<HashMap<BlobId, BlobImpl>>,
     },
     /// A data holder for transferred and serialized objects.
