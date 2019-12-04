@@ -65,14 +65,13 @@ pub struct BlobImpl {
     /// Content-type string
     type_string: String,
     /// Blob data-type.
-    #[ignore_malloc_size_of = "BlobData are hard"]
     blob_data: BlobData,
     /// Sliced blobs referring to this one.
     slices: Vec<BlobId>,
 }
 
 /// Different backends of Blob
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, MallocSizeOf, Serialize)]
 pub enum BlobData {
     /// File-based blob, whose content lives in the net process
     File(FileBlob),

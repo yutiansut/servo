@@ -88,7 +88,7 @@ impl Blob {
 }
 
 impl Serializable for Blob {
-    /// <https://html.spec.whatwg.org/multipage/#serialization-steps>
+    /// <https://w3c.github.io/FileAPI/#ref-for-serialization-steps>
     fn serialize(&self, sc_holder: &mut StructuredDataHolder) -> Result<StorageKey, ()> {
         let blob_impls = match sc_holder {
             StructuredDataHolder::Write { blobs, .. } => blobs,
@@ -128,7 +128,7 @@ impl Serializable for Blob {
         Ok(storage_key)
     }
 
-    /// <https://html.spec.whatwg.org/multipage/#deserialization-steps>
+    /// <https://w3c.github.io/FileAPI/#ref-for-deserialization-steps>
     fn deserialize(
         owner: &DomRoot<GlobalScope>,
         sc_holder: &mut StructuredDataHolder,
