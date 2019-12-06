@@ -59,6 +59,7 @@ def tasks(task_for):
             "try": all_tests,
             "try-taskcluster": [
                 # Add functions here as needed, in your push to that branch
+                update_wpt
             ],
             "master": [
                 upload_docs,
@@ -579,13 +580,13 @@ def macos_nightly():
 
 
 def update_wpt():
-    build_task = linux_release_build_with_debug_assertions(layout_2020=False)
+    build_task = "aTJFuP1bT127ZSmlX1xDlQ"#linux_release_build_with_debug_assertions(layout_2020=False)
     return (
         linux_task("WPT update")
         .with_treeherder("Linux x64", "WPT update")
         .with_dockerfile(dockerfile_path("wpt-update"))
         .with_features("taskclusterProxy")
-        .with_scopes("secrets:get:project/servo/wpt-sync")
+#        .with_scopes("secrets:get:project/servo/wpt-sync")
         .with_index_and_artifacts_expire_in(log_artifacts_expire_in)
         .with_max_run_time_minutes(8 * 60)
         # Not using the bundle, pushing the new changes to the git remote requires a full repo.
