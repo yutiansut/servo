@@ -186,13 +186,11 @@ Analyzing reftest results
 Reftest results can be analyzed from a raw log file. To generate this run
 with the `--log-raw` option e.g.
 
-    ./mach test-wpt --log-raw wpt.log
+    ./mach test-wpt --log-mach wpt.log --log-mach-screenshot
 
 This file can then be fed into the
-[reftest analyzer](http://hoppipolla.co.uk/410/reftest-analyser-structured.xhtml)
+[reftest analyzer](https://hg.mozilla.org/mozilla-central/raw-file/tip/layout/tools/reftest/reftest-analyzer.xhtml)
 which will show all failing tests (not just those with unexpected results).
-Note that this ingests logs in a different format to original version of the
-tool written for gecko reftests.
 
 The reftest analyzer allows pixel-level comparison of the test and reference
 screenshots. Tests that both fail and have an unexpected result are marked
