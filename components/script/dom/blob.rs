@@ -105,7 +105,7 @@ impl Serializable for Blob {
 
         // 2. Store the object at a given key.
         if let Some(blobs) = blob_impls.as_mut() {
-            blobs.insert(blob_id.clone(), blob_impl);
+            blobs.insert(new_blob_id.clone(), blob_impl);
         } else {
             let mut blobs = HashMap::new();
             blobs.insert(new_blob_id.clone(), blob_impl);
