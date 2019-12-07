@@ -16,11 +16,11 @@ use crate::positioned::AbsolutelyPositionedBox;
 use crate::replaced::ReplacedContent;
 use crate::sizing::ContentSizesRequest;
 use crate::style_ext::{Direction, Display, DisplayGeneratingBox, DisplayInside, WritingMode};
-use crate::{ContainingBlock, DefiniteContainingBlock};
+use crate::DefiniteContainingBlock;
 use rayon::iter::{IntoParallelRefIterator, ParallelExtend, ParallelIterator};
 use script_layout_interface::wrapper_traits::LayoutNode;
 use servo_arc::Arc;
-use style::values::computed::{Length, LengthOrAuto};
+use style::values::computed::Length;
 use style::Zero;
 use style_traits::CSSPixel;
 
@@ -97,31 +97,25 @@ impl BoxTreeRoot {
         layout_context: &LayoutContext,
         viewport: geom::Size<CSSPixel>,
     ) -> FragmentTreeRoot {
-        let initial_containing_block_size = Vec2 {
-            inline: Length::new(viewport.width),
-            block: Length::new(viewport.height),
-        };
-
-        let initial_containing_block = ContainingBlock {
-            inline_size: initial_containing_block_size.inline,
-            block_size: LengthOrAuto::LengthPercentage(initial_containing_block_size.block),
+        let initial_containing_block = DefiniteContainingBlock {
+            size: Vec2 {
+                inline: Length::new(viewport.width),
+                block: Length::new(viewport.height),
+            },
             // FIXME: use the document’s mode:
             // https://drafts.csswg.org/css-writing-modes/#principal-flow
             mode: (WritingMode::HorizontalTb, Direction::Ltr),
         };
+
         let dummy_tree_rank = 0;
         let mut absolutely_positioned_fragments = vec![];
         let mut independent_layout = self.0.layout(
             layout_context,
-            &initial_containing_block,
+            &(&initial_containing_block).into(),
             dummy_tree_rank,
             &mut absolutely_positioned_fragments,
         );
 
-        let initial_containing_block = DefiniteContainingBlock {
-            size: initial_containing_block_size,
-            mode: initial_containing_block.mode,
-        };
         independent_layout.fragments.par_extend(
             absolutely_positioned_fragments
                 .par_iter()

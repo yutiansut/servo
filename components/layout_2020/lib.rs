@@ -43,6 +43,16 @@ struct DefiniteContainingBlock {
     mode: (WritingMode, Direction),
 }
 
+impl From<&'_ DefiniteContainingBlock> for ContainingBlock {
+    fn from(definite: &DefiniteContainingBlock) -> Self {
+        ContainingBlock {
+            inline_size: definite.size.inline,
+            block_size: LengthOrAuto::LengthPercentage(definite.size.block),
+            mode: definite.mode,
+        }
+    }
+}
+
 /// https://drafts.csswg.org/css2/visuren.html#relative-positioning
 fn relative_adjustement(
     style: &ComputedValues,
