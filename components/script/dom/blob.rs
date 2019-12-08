@@ -104,13 +104,8 @@ impl Serializable for Blob {
         let new_blob_id = blob_impl.blob_id();
 
         // 2. Store the object at a given key.
-        if let Some(blobs) = blob_impls.as_mut() {
-            blobs.insert(new_blob_id.clone(), blob_impl);
-        } else {
-            let mut blobs = HashMap::new();
-            blobs.insert(new_blob_id.clone(), blob_impl);
-            *blob_impls = Some(blobs);
-        }
+        let blobs = blob_impls.get_or_insert_with(|| HashMap::new());
+        blobs.insert(new_blob_id.clone(), blob_impl);
 
         let PipelineNamespaceId(name_space) = new_blob_id.namespace_id;
         let BlobIndex(index) = new_blob_id.index;
@@ -165,13 +160,8 @@ impl Serializable for Blob {
 
         let deserialized_blob = Blob::new(&**owner, blob_impl);
 
-        if let Some(blobs) = blobs.as_mut() {
-            blobs.insert(storage_key, deserialized_blob);
-        } else {
-            let mut blobs_map = HashMap::new();
-            blobs_map.insert(storage_key, deserialized_blob);
-            *blobs = Some(blobs_map);
-        };
+        let blobs = blobs.get_or_insert_with(|| HashMap::new());
+        blobs.insert(storage_key, deserialized_blob);
 
         Ok(())
     }
