@@ -215,15 +215,10 @@ impl BlobMethods for Blob {
         end: Option<i64>,
         content_type: Option<DOMString>,
     ) -> DomRoot<Blob> {
+        let type_string =
+            normalize_type_string(&content_type.unwrap_or(DOMString::from("")).to_string());
         let rel_pos = RelativePos::from_opts(start, end);
-        let blob_impl = BlobImpl::new_sliced(
-            rel_pos,
-            self.blob_id.clone(),
-            content_type
-                .unwrap_or(DOMString::from(""))
-                .to_owned()
-                .to_string(),
-        );
+        let blob_impl = BlobImpl::new_sliced(rel_pos, self.blob_id.clone(), type_string);
         Blob::new(&*self.global(), blob_impl)
     }
 }
